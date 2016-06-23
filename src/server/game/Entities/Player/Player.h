@@ -2759,6 +2759,14 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
 
         std::array<std::unique_ptr<CUFProfile>, MAX_CUF_PROFILES> _CUFProfiles;
 
+		public:
+		/* HYPERION CORE CODE BLOCK */
+		/* THE FOLLOWING ARE ALL HYPRION EDITS FOR FUNCTIONALITY */
+		/* Pegasus */
+		TempSummon* m_pegasus;
+		TempSummon* GetPegasusMount() { return m_pegasus; }
+		void SetPegasusMount( TempSummon* _t) { m_pegasus = _t; }
+
     private:
         // internal common parts for CanStore/StoreItem functions
         InventoryResult CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool swap, Item* pSrcItem) const;

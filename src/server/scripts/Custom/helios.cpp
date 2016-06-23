@@ -65,7 +65,7 @@ public:
 			itemEntry = i->GetEntry();
 			itemGUID = i->GetGUID();
 			pos = targets.GetDstPos();
-			p->CastSpell( p, Hyperion::Spells::HELIOS_SPELL, true );
+			p->CastSpell( p, HyperionSpellList::HELIOS_SPELL, true );
 
 		} else {
 			ChatHandler( p->GetSession() ).SendSysMessage( "You are not able to spawn gameobjects in this zone." );
@@ -74,7 +74,7 @@ public:
 	}
 
 	bool isGoodMap( uint32 map ) {
-		if(map == Hyperion::START_ZONE)
+		if(map == START_ZONE)
 			return false;
 
 		return true;

@@ -706,6 +706,19 @@ class TC_GAME_API PlayerScript : public UnitScript
         // Called in Spell::Cast.
         virtual void OnSpellCast(Player* /*player*/, Spell* /*spell*/, bool /*skipCheck*/) { }
 
+		/****************************/
+		/* HYPERION CORE CODE BLOCK */
+		/*          START           */
+		/****************************/
+		// Called on a player dismounting
+		virtual void OnDismount( Player* /*player*/, uint32 /*entry*/ ) {}
+		// Called on a player mounting
+		virtual void OnMount( Player* /*player*/ ) {}
+		/****************************/
+		/* HYPERION CORE CODE BLOCK */
+		/*           END            */
+		/****************************/
+
         // Called when a player logs in.
         virtual void OnLogin(Player* /*player*/, bool /*firstLogin*/) { }
 
@@ -1061,6 +1074,10 @@ class TC_GAME_API ScriptMgr
         void OnPlayerBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent, uint8 extendState);
         void OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea);
         void OnQuestStatusChange(Player* player, uint32 questId, QuestStatus status);
+
+		/* HYPERION CORE CODE BLOCK */
+		void OnPlayerDismount( Player* player, uint32 entry );
+		void OnPlayerMount( Player* player );
 
     public: /* AccountScript */
 

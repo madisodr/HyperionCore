@@ -2061,6 +2061,15 @@ void ScriptMgr::OnPlayerSpellCast(Player* player, Spell* spell, bool skipCheck)
     FOREACH_SCRIPT(PlayerScript)->OnSpellCast(player, spell, skipCheck);
 }
 
+/* HYPERION CORE CODE BLOCK */
+void ScriptMgr::OnPlayerDismount( Player* player, uint32 entry ) {
+	FOREACH_SCRIPT( PlayerScript )->OnDismount( player, entry );
+}
+
+void ScriptMgr::OnPlayerMount( Player* player ) {
+	FOREACH_SCRIPT( PlayerScript )->OnMount( player );
+}
+
 void ScriptMgr::OnPlayerLogin(Player* player, bool firstLogin)
 {
     FOREACH_SCRIPT(PlayerScript)->OnLogin(player, firstLogin);

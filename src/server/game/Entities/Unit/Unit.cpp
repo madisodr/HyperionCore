@@ -9155,6 +9155,9 @@ void Unit::Mount(uint32 mount, uint32 VehicleId, uint32 creatureEntry)
 
     if (Player* player = ToPlayer())
     {
+		/* HYPERION CORE CODE BLOCK */
+		sScriptMgr->OnPlayerMount( player );
+
         // mount as a vehicle
         if (VehicleId)
         {
@@ -9180,8 +9183,8 @@ void Unit::Mount(uint32 mount, uint32 VehicleId, uint32 creatureEntry)
         }
 
         player->SendMovementSetCollisionHeight(player->GetCollisionHeight(true));
-    }
 
+    }
     RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_MOUNT);
 }
 
@@ -9190,6 +9193,8 @@ void Unit::Dismount()
     if (!IsMounted())
         return;
 
+
+	
     SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, 0);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT);
 
@@ -9221,7 +9226,11 @@ void Unit::Dismount()
         }
         else
             player->ResummonPetTemporaryUnSummonedIfAny();
+
+		/* HYPERION CORE CODE BLOCK */
+		sScriptMgr->OnPlayerDismount( player, this->GetMountID() );
     }
+
 }
 
 MountCapabilityEntry const* Unit::GetMountCapability(uint32 mountType) const
