@@ -374,6 +374,14 @@ class TC_GAME_API ItemScript : public ScriptObject
 
         // Called when the item is destroyed.
         virtual bool OnRemove(Player* /*player*/, Item* /*item*/) { return false; }
+		/****************************/
+		/* HYPERION CORE CODE BLOCK */
+		/*          START           */
+		/****************************/
+		// Called when a player selects an option in an item gossip window
+		virtual void OnGossipSelect( Player* /*player*/, Item* /*item*/, uint32 /*sender*/, uint32 /*action*/ ) {}
+		// Called when a player selects an option in an item gossip window
+		virtual void OnGossipSelectCode( Player* /*player*/, Item* /*item*/, uint32 /*sender*/, uint32 /*action*/, const char* /*code*/ ) {}
 };
 
 class TC_GAME_API UnitScript : public ScriptObject
@@ -706,19 +714,6 @@ class TC_GAME_API PlayerScript : public UnitScript
         // Called in Spell::Cast.
         virtual void OnSpellCast(Player* /*player*/, Spell* /*spell*/, bool /*skipCheck*/) { }
 
-		/****************************/
-		/* HYPERION CORE CODE BLOCK */
-		/*          START           */
-		/****************************/
-		// Called on a player dismounting
-		virtual void OnDismount( Player* /*player*/, uint32 /*entry*/ ) {}
-		// Called on a player mounting
-		virtual void OnMount( Player* /*player*/ ) {}
-		/****************************/
-		/* HYPERION CORE CODE BLOCK */
-		/*           END            */
-		/****************************/
-
         // Called when a player logs in.
         virtual void OnLogin(Player* /*player*/, bool /*firstLogin*/) { }
 
@@ -748,6 +743,23 @@ class TC_GAME_API PlayerScript : public UnitScript
 
         // Called after a player's quest status has been changed
         virtual void OnQuestStatusChange(Player* /*player*/, uint32 /*questId*/, QuestStatus /*status*/) { }
+
+		/****************************/
+		/* HYPERION CORE CODE BLOCK */
+		/*          START           */
+		/****************************/
+		// Called on a player dismounting
+		virtual void OnDismount( Player* /*player*/, uint32 /*entry*/ ) {}
+		// Called on a player mounting
+		virtual void OnMount( Player* /*player*/ ) {}
+		// Called when a player selects an option in a player gossip window
+		virtual void OnGossipSelect( Player* /*player*/, uint32 /*menu_id*/, uint32 /*sender*/, uint32 /*action*/ ) {}
+		// Called when a player selects an option in a player gossip window
+		virtual void OnGossipSelectCode( Player* /*player*/, uint32 /*menu_id*/, uint32 /*sender*/, uint32 /*action*/, const char* /*code*/ ) {}
+		/****************************/
+		/* HYPERION CORE CODE BLOCK */
+		/*           END            */
+		/****************************/
 };
 
 class TC_GAME_API AccountScript : public ScriptObject
@@ -956,6 +968,9 @@ class TC_GAME_API ScriptMgr
         bool OnItemExpire(Player* player, ItemTemplate const* proto);
         bool OnItemRemove(Player* player, Item* item);
 
+		/* HYPERION */
+		void OnGossipSelect( Player* player, Item* item, uint32 sender, uint32 action );
+		void OnGossipSelectCode( Player* player, Item* item, uint32 sender, uint32 action, const char* code );
     public: /* CreatureScript */
 
         bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffIndex effIndex, Creature* target);
@@ -1078,6 +1093,8 @@ class TC_GAME_API ScriptMgr
 		/* HYPERION CORE CODE BLOCK */
 		void OnPlayerDismount( Player* player, uint32 entry );
 		void OnPlayerMount( Player* player );
+		void OnGossipSelect( Player* player, uint32 menu_id, uint32 sender, uint32 action );
+		void OnGossipSelectCode( Player* player, uint32 menu_id, uint32 sender, uint32 action, const char* code );
 
     public: /* AccountScript */
 

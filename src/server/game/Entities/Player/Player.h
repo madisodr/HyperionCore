@@ -2764,8 +2764,14 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
 		/* THE FOLLOWING ARE ALL HYPRION EDITS FOR FUNCTIONALITY */
 		/* Pegasus */
 		TempSummon* m_pegasus;
-		TempSummon* GetPegasusMount() { return m_pegasus; }
-		void SetPegasusMount( TempSummon* _t) { m_pegasus = _t; }
+		inline TempSummon* GetPegasusMount() { return m_pegasus; }
+		inline void SetPegasusMount( TempSummon* _t) { m_pegasus = _t; }
+
+		bool IsSeeingOOCChat;
+		inline void toggleOOCChat() { IsSeeingOOCChat = !IsSeeingOOCChat; }
+
+		uint32 AthenaSpawnEntry;
+		inline void SetAthenaSpawnEntry( uint32 id ) { AthenaSpawnEntry = id; }
 
     private:
         // internal common parts for CanStore/StoreItem functions

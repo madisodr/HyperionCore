@@ -1,17 +1,23 @@
-/* HyperionCore
- * Code Name: Pegasus
- * Desc: Gameobject placement and building system
- */
+/* HyperionCore */
 
-#include "Hyperion.h"
-#include "ScriptMgr.h"
 #include "Player.h"
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
+#include "ScriptedGossip.h"
 #include "ObjectAccessor.h"
 #include "TargetedMovementGenerator.h"
 
 struct PegasusMount {
 	uint32 entry;
 	uint32 spawnId;
+};
+
+enum GossipOptions {
+	DISMISS = 5,
+	STAY = 10,
+	FOLLOW = 15,
+	BANK = 20,
+	EXIT = 25
 };
 
 static std::vector<PegasusMount*> mounts;
@@ -35,7 +41,7 @@ public:
 	}
 };
 
-extern class Player;
+
 class PegasusHandler : public PlayerScript {
 public:
 	PegasusHandler() : PlayerScript( "pegasus_handler" ) {}
@@ -59,7 +65,7 @@ public:
 			if(e->entry == entry) {
 				m = p->SummonCreature( e->spawnId, p->GetPositionX() + 5, p->GetPositionY() + 5, p->GetPositionZ() + 1 );
 				p->SetPegasusMount( m );
-				m->GetMotionMaster()->Movefollow( p, PET_FOLLOW_DIST, m->GetFollowAngle() );
+				m->GetMotionMaster()->MoveFollow( p, PET_FOLLOW_DIST, m->GetFollowAngle() );
 			}
 		}
 	}
@@ -71,6 +77,55 @@ public:
 class PegasusGossip : public CreatureScript {
 public:
 	PegasusGossip() : CreatureScript("pegasus_gossip") { }
+
+	bool OnGossipHello( Player* p, Creature* c ) {
+		if(p == c->ToTempSummon()->GetSummoner()) {
+			p->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Dismiss", GOSSIP_SENDER_MAIN, 5 );
+			p->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Stay", GOSSIP_SENDER_MAIN, 10 );
+			p->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Follow", GOSSIP_SENDER_MAIN, 15 );
+			p->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Check Storage", GOSSIP_SENDER_MAIN, 20 );
+			p->ADD_GOSSIP_ITEM( GOSSIP_ICON_CHAT, "Exit", GOSSIP_SENDER_MAIN, 25 );
+			p->PlayerTalkClass->SendGossipMenu( 1, c->GetGUID() );
+		}
+
+		return true;
+	}
+
+	bool OnGossipSelect( Player* p, Creature* c, uint32 sender, uint32 actions ) {
+		p->PlayerTalkClass->ClearMenus();
+		switch(actions) { 
+			case DISMISS:
+				if(p->GetPegasusMount() != NULL) {
+					c->ToTempSummon()->UnSummon();
+					p->SetPegasusMount( NULL );
+				}
+
+				p->PlayerTalkClass->SendCloseGossip();
+				break;
+			case STAY:
+				if(p->GetPegasusMount() != NULL) {
+					c->SetPosition( c->GetPositionX(), c->GetPositionY(), c->GetPositionZ(), c->GetOrientation() );
+					c->GetMotionMaster()->MovementExpired( true );
+				}
+				p->PlayerTalkClass->SendCloseGossip();
+				break;
+			case FOLLOW:
+				if(p->GetPegasusMount() != NULL)
+					c->GetMotionMaster()->MoveFollow( p, PET_FOLLOW_DIST, c->GetFollowAngle() );
+
+				p->PlayerTalkClass->SendCloseGossip();
+				break;
+			case BANK:
+				p->PlayerTalkClass->SendCloseGossip();
+				p->GetSession()->SendShowBank( p->GetGUID() );
+				break;
+			case EXIT:
+				break;
+		}
+
+		p->PlayerTalkClass->SendCloseGossip();
+		return true;
+	}
 };
 
 

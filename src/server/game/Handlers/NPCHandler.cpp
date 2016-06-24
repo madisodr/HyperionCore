@@ -308,6 +308,8 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPackets::NPC::GossipSelec
 
     Creature* unit = nullptr;
     GameObject* go = nullptr;
+	Item* item = nullptr;
+
     if (packet.GossipUnit.IsCreatureOrVehicle())
     {
         unit = GetPlayer()->GetNPCIfCanInteractWith(packet.GossipUnit, UNIT_NPC_FLAG_GOSSIP);
@@ -326,6 +328,18 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPackets::NPC::GossipSelec
             return;
         }
     }
+	/* HYPERION EDIT */
+	else if(packet.GossipUnit.IsItem()) {
+		item = _player->GetItemByGuid( packet.GossipUnit );
+		if(!item || _player->IsBankPos( item->GetPos() )) {
+			TC_LOG_DEBUG( "network", "WORLD: HandleGossipSelectOptionOpcode - %s not found.", packet.GossipUnit.ToString().c_str() );
+			return;			}
+	} else if(packet.GossipUnit.IsPlayer()) {
+		if(packet.GossipUnit != _player->GetGUID() || packet.GossipID != _player->PlayerTalkClass->GetGossipMenu().GetMenuId()) {
+			TC_LOG_DEBUG( "network", "WORLD: HandleGossipSelectOptionOpcode - %s not found.", packet.GossipUnit.ToString().c_str() );
+			return;
+		}
+	}
     else
     {
 
@@ -357,12 +371,16 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPackets::NPC::GossipSelec
             if (!sScriptMgr->OnGossipSelectCode(_player, unit, _player->PlayerTalkClass->GetGossipOptionSender(packet.GossipIndex), _player->PlayerTalkClass->GetGossipOptionAction(packet.GossipIndex), packet.PromotionCode.c_str()))
                 _player->OnGossipSelect(unit, packet.GossipIndex, packet.GossipID);
         }
-        else
+        else if(go)
         {
             go->AI()->GossipSelectCode(_player, packet.GossipID, packet.GossipIndex, packet.PromotionCode.c_str());
             if (!sScriptMgr->OnGossipSelectCode(_player, go, _player->PlayerTalkClass->GetGossipOptionSender(packet.GossipIndex), _player->PlayerTalkClass->GetGossipOptionAction(packet.GossipIndex), packet.PromotionCode.c_str()))
                 _player->OnGossipSelect(go, packet.GossipIndex, packet.GossipID);
-        }
+		} else if(item) {
+			sScriptMgr->OnGossipSelectCode( _player, item, _player->PlayerTalkClass->GetGossipOptionSender( packet.GossipIndex ), _player->PlayerTalkClass->GetGossipOptionAction( packet.GossipIndex ), packet.PromotionCode.c_str() );
+		} else {
+			sScriptMgr->OnGossipSelectCode( _player, packet.GossipID, _player->PlayerTalkClass->GetGossipOptionSender( packet.GossipIndex ), _player->PlayerTalkClass->GetGossipOptionAction( packet.GossipIndex ), packet.PromotionCode.c_str() );
+		}
     }
     else
     {
@@ -372,12 +390,17 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPackets::NPC::GossipSelec
             if (!sScriptMgr->OnGossipSelect(_player, unit, _player->PlayerTalkClass->GetGossipOptionSender(packet.GossipIndex), _player->PlayerTalkClass->GetGossipOptionAction(packet.GossipIndex)))
                 _player->OnGossipSelect(unit, packet.GossipIndex, packet.GossipID);
         }
-        else
+        else if(go)
         {
             go->AI()->GossipSelect(_player, packet.GossipID, packet.GossipIndex);
             if (!sScriptMgr->OnGossipSelect(_player, go, _player->PlayerTalkClass->GetGossipOptionSender(packet.GossipIndex), _player->PlayerTalkClass->GetGossipOptionAction(packet.GossipIndex)))
                 _player->OnGossipSelect(go, packet.GossipIndex, packet.GossipID);
         }
+		else if(item) {
+			sScriptMgr->OnGossipSelect( _player, item, _player->PlayerTalkClass->GetGossipOptionSender( packet.GossipIndex ), _player->PlayerTalkClass->GetGossipOptionAction( packet.GossipIndex ) );
+		} else {
+			sScriptMgr->OnGossipSelect( _player, packet.GossipID, _player->PlayerTalkClass->GetGossipOptionSender( packet.GossipIndex ), _player->PlayerTalkClass->GetGossipOptionAction( packet.GossipIndex ) );
+		}
     }
 }
 

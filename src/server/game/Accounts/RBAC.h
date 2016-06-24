@@ -729,7 +729,12 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_DEBUG_LOADCELLS                        = 835,
     RBAC_PERM_COMMAND_DEBUG_BOUNDARY                         = 836,
 
-    // custom permissions 1000+
+
+	// custom permissions 1000+
+	/* HYPERION CORE CODE BLOCK */
+	RBAC_PERM_COMMAND_JANUS                                  = 1000,
+	RBAC_PERM_COMMAND_IDYIA                                   = 1001,
+	RBAC_PERM_COMMAND_ATHENA                                 = 1002,
     RBAC_PERM_MAX
 };
 

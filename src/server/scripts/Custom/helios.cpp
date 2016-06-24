@@ -1,9 +1,9 @@
-/* HyperionCore
- * Code Name: Helios
- * Desc: Gameobject placement and building system
- */
+/* HyperionCore */
+
+#define HELIOS_SPELL 29173
+#define START_ZONE 725
+
 #include "Chat.h"
-#include "Hyperion.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -65,7 +65,7 @@ public:
 			itemEntry = i->GetEntry();
 			itemGUID = i->GetGUID();
 			pos = targets.GetDstPos();
-			p->CastSpell( p, HyperionSpellList::HELIOS_SPELL, true );
+			p->CastSpell( p, HELIOS_SPELL, true );
 
 		} else {
 			ChatHandler( p->GetSession() ).SendSysMessage( "You are not able to spawn gameobjects in this zone." );
@@ -110,7 +110,7 @@ public:
 };
 
 
-void AddSC_Helios_System() {
+void AddSC_Helios() {
 	new HeliosHandler();
     new HeliosItem();
     new HeliosSpell();

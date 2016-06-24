@@ -1722,6 +1722,8 @@ void ScriptMgr::OnGameObjectUpdate(GameObject* go, uint32 diff)
     tmpscript->OnUpdate(go, diff);
 }
 
+
+
 bool ScriptMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffIndex effIndex, GameObject* target)
 {
     ASSERT(caster);
@@ -2068,6 +2070,27 @@ void ScriptMgr::OnPlayerDismount( Player* player, uint32 entry ) {
 
 void ScriptMgr::OnPlayerMount( Player* player ) {
 	FOREACH_SCRIPT( PlayerScript )->OnMount( player );
+}
+
+void ScriptMgr::OnGossipSelect( Player* player, uint32 menu_id, uint32 sender, uint32 action ) {
+	FOREACH_SCRIPT( PlayerScript )->OnGossipSelect( player, menu_id, sender, action );
+}
+void ScriptMgr::OnGossipSelectCode( Player* player, uint32 menu_id, uint32 sender, uint32 action, const char* code ) {
+	FOREACH_SCRIPT( PlayerScript )->OnGossipSelectCode( player, menu_id, sender, action, code );
+}
+
+void ScriptMgr::OnGossipSelect( Player* player, Item* item, uint32 sender, uint32 action ) {
+	ASSERT( player );
+	ASSERT( item );
+	GET_SCRIPT( ItemScript, item->GetScriptId(), tmpscript );
+	tmpscript->OnGossipSelect( player, item, sender, action );
+}
+
+void ScriptMgr::OnGossipSelectCode( Player* player, Item* item, uint32 sender, uint32 action, const char* code ) {
+	ASSERT( player );
+	ASSERT( item );
+	GET_SCRIPT( ItemScript, item->GetScriptId(), tmpscript );
+	tmpscript->OnGossipSelectCode( player, item, sender, action, code );
 }
 
 void ScriptMgr::OnPlayerLogin(Player* player, bool firstLogin)

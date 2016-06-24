@@ -20,8 +20,10 @@
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
+void AddSC_Helios();
+void AddSC_Janus();
 
-void AddSC_Helios_System();
 void AddCustomScripts() {
-	AddSC_Helios_System();
+	AddSC_Helios();
+	AddSC_Janus();
 }
