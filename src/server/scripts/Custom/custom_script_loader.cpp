@@ -22,8 +22,14 @@
 // void Add${NameOfDirectory}Scripts()
 void AddSC_Helios();
 void AddSC_Janus();
+void AddSC_OOCChat();
+void AddSC_Athena();
+void AddSC_Pegasus();
 
 void AddCustomScripts() {
 	AddSC_Helios();
 	AddSC_Janus();
+	AddSC_OOCChat();
+	AddSC_Athena();
+	AddSC_Pegasus();
 }

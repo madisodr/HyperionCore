@@ -15,15 +15,14 @@
 
 class JanusCommandScript : public CommandScript {
 public:
-	JanusCommandScript() : CommandScript( "janus_commandscript" ) {}
-	std::vector<ChatCommand> GetCommands() const {
+	JanusCommandScript() : CommandScript( "JanusCommandScript" ) {}
+	std::vector<ChatCommand> GetCommands() const override {
 		static std::vector<ChatCommand> JanusCommandTable = {
-			{ "link",   rbac::RBAC_PERM_COMMAND_JANUS,   true,  &HandleLinkCommand,   "" },
-			{ "delete", rbac::RBAC_PERM_COMMAND_JANUS,   true,  &HandleDeleteCommand, "" },
-			{ "",     0,                                 false, NULL,                 "" }
+			{ "link",   rbac::RBAC_PERM_COMMAND_JANUS_LINK,     false,  &HandleLinkCommand,   "" },
+			{ "delete", rbac::RBAC_PERM_COMMAND_JANUS_DELETE,   false,  &HandleDeleteCommand, "" },
 		};
 		static std::vector<ChatCommand> commandTable = {
-			{"janus",   rbac::RBAC_PERM_COMMAND_JANUS, true,  NULL, "", JanusCommandTable},
+			{"janus",   rbac::RBAC_PERM_COMMAND_JANUS, false,  NULL, "", JanusCommandTable},
 		};
 
 		return commandTable;
@@ -44,7 +43,7 @@ public:
 
 	bool OnGossipHello( Player* player, GameObject* go ) {
 		uint64 guid = go->GetSpawnId();
-		QueryResult result = WorldDatabase.PQuery( "SELECT map, x, y, z, o FROM janus WHERE objectID='%u' LIMIT 1", guid );
+		QueryResult result = WorldDatabase.PQuery( "SELECT map, x, y, z, o FROM janus WHERE guid='%u' LIMIT 1", guid );
 		if(!result)
 			return false;
 

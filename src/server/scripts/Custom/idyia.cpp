@@ -40,10 +40,10 @@ string RANK[4] = {
 
 class Idyia_CommandScript : public CommandScript {
 public:
-	Idyia_CommandScript() : CommandScript( "idyia_commandscript" ) {}
-	std::vector<ChatCommand> GetCommands() const {
+	Idyia_CommandScript() : CommandScript( "Idyia_CommandScript" ) {}
+	std::vector<ChatCommand> GetCommands() const override {
 		static std::vector<ChatCommand> commandTable = {
-			{"togglechat",   rbac::RBAC_PERM_COMMAND_IDYIA,   true,  &HandleToggleCommand,   ""},
+			{"togglechat",   rbac::RBAC_PERM_COMMAND_IDYIA,   false,  &HandleToggleCommand,   ""},
 		};
 
 		return commandTable;
@@ -54,9 +54,9 @@ public:
 		string MSG = "";
 		player->toggleOOCChat();
 		if(player->IsSeeingOOCChat)
-			MSG += RED + "[Enableing OOC Chat|r]";
+			MSG += "[" + RED + "Enableing OOC Chat|r]";
 		else
-			MSG += RED + "[Disableing OOC Chat|r]";
+			MSG += "[" + RED + "Disableing OOC Chat|r]";
 
 		handler->PSendSysMessage( MSG.c_str() );
 		return true;
@@ -152,3 +152,8 @@ public:
 		}
 	}
 };
+
+void AddSC_OOCChat() {
+	new OOC_Channel();
+	new Idyia_CommandScript();
+}

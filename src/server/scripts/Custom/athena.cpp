@@ -9,17 +9,16 @@
 
 class AthenaCommandScript : public CommandScript {
 public:
-	AthenaCommandScript() : CommandScript( "janus_commandscript" ) {}
-	std::vector<ChatCommand> GetCommands() const {
+	AthenaCommandScript() : CommandScript( "AthenaCommandScript" ) {}
+	std::vector<ChatCommand> GetCommands() const override {
 		static std::vector<ChatCommand> AthenaCommandTable = {
-			{"select",   rbac::RBAC_PERM_COMMAND_ATHENA,   true,  &HandleAthenaSelectCommand,   ""},
-			{"link",     rbac::RBAC_PERM_COMMAND_ATHENA,   true,  &HandleAthenaLinkCommand,     ""},
-			{"unlink",   rbac::RBAC_PERM_COMMAND_ATHENA,   true,  &HandleAthenaUnlinkCommand,   ""},
-			{"",         0,                                false, NULL,                         ""}
+			{"select",   rbac::RBAC_PERM_COMMAND_ATHENA_SELECT,   false,  &HandleAthenaSelectCommand,   ""},
+			{"link",     rbac::RBAC_PERM_COMMAND_ATHENA_LINK,   false,  &HandleAthenaLinkCommand,     ""},
+			{"unlink",   rbac::RBAC_PERM_COMMAND_ATHENA_UNLINK,   false,  &HandleAthenaUnlinkCommand,   ""},
 		};
 
 		static std::vector<ChatCommand> commandTable = {
-			{"athena",   rbac::RBAC_PERM_COMMAND_CAST, true,  NULL, "", AthenaCommandTable},
+			{"athena",   rbac::RBAC_PERM_COMMAND_ATHENA, false,  NULL, "", AthenaCommandTable},
 		};
 
 		return commandTable;
@@ -58,7 +57,7 @@ public:
 
 class AthenaMovement : public SpellScriptLoader {
 public:
-	AthenaMovement() : SpellScriptLoader( "AthenaSpell" ) {}
+	AthenaMovement() : SpellScriptLoader( "AthenaMovement" ) {}
 
 	class AthenaMovementSpellScript : public SpellScript {
 		PrepareSpellScript( AthenaMovementSpellScript );
@@ -146,3 +145,9 @@ public:
 		return new AthenaPlacementSpellScript();
 	}
 };
+
+void AddSC_Athena() {
+	new AthenaPlacement();
+	new AthenaMovement();
+	new AthenaCommandScript();
+}

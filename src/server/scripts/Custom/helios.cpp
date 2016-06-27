@@ -21,12 +21,7 @@ class HeliosHandler : public WorldScript {
 public:
 	HeliosHandler() : WorldScript( "HeliosHandler" ) {}
 	void OnStartup() {
-		if(loadHyperion()) {
-			TC_LOG_INFO( "server.loading", "Loading Helios Item/Object Pairs" );
-		} else {
-			TC_LOG_INFO( "server.loading", "Failed to load Helios Item/Object Pairs" );
-			exit( 1 );
-		}
+		loadHyperion();
 	}
 
 	// Cleanup the helios objects
@@ -48,6 +43,8 @@ public:
 			i->object = f[1].GetUInt32();
 			HeliosObjectList.push_back( i );
 		} while(r->NextRow());
+
+		return true;
 	}
 	
 };
@@ -58,7 +55,7 @@ public:
 	static ObjectGuid itemGUID;
 	static const WorldLocation* pos;
 
-	HeliosItem() : ItemScript( "hyperion_helios_item" ) {}
+	HeliosItem() : ItemScript( "HeliosItem" ) {}
 
 	bool OnUse( Player* p, Item* i, SpellCastTargets const& targets ) override {
 		if(isGoodMap( p->GetMapId() )) {
@@ -88,7 +85,7 @@ const WorldLocation* HeliosItem::pos;
 
 class HeliosSpell : public SpellScriptLoader {
 public:
-	HeliosSpell() : SpellScriptLoader( "hyperion_helios_spell" ) {}
+	HeliosSpell() : SpellScriptLoader( "HeliosSpell" ) {}
 	class HeliosSpell_SpellScript : public SpellScript {
 		PrepareSpellScript( HeliosSpell_SpellScript );
 
