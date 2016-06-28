@@ -14,11 +14,11 @@ struct HeliosObject {
 	uint32 item;
 	uint32 object;
 };
-
+/*
 class HeliosObject : public GameObject {
 	HeliosObject( Item* i );
 };
-
+*/
 static std::vector<HeliosObject*> HeliosObjectList;
 
 class HeliosHandler : public WorldScript {
