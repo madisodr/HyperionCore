@@ -86,7 +86,7 @@ public:
 		ChatHandler( player->GetSession() ).PSendSysMessage( "Please refrain from being overtly offensive or using discriminatory langauge.");
 		ChatHandler( player->GetSession() ).PSendSysMessage( "Joined OOC Chat. Use `/%u` to access the channel.", CHANNEL_ID);
 		ChatHandler( player->GetSession() ).PSendSysMessage( "Use `.togglechat` to disable/enable ooc chat.");
-		player->toggleOOCChat();
+		player->toggleOOCChat(true, true); // Turn chat on at start up. 
 	}
 
 	virtual void OnChat( Player* player, uint32 /*type*/, uint32 lang, std::string& msg, Channel* channel ) {

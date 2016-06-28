@@ -1,13 +1,36 @@
 /* HyperionCore */
 
+#include "Chat.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
+#include "MiscPackets.h"
 
 enum Prometheus_Flags {
 	NONE = 0x00000000,
 	WORLD_PVP_ENABLED = 0x00000001,
+};
+
+
+class Prometheus_CommandScript : public CommandScript {
+public:
+	Prometheus_CommandScript() : CommandScript( "Prometheus_CommandScript" ) {}
+	std::vector<ChatCommand> GetCommands() const override {
+		static std::vector<ChatCommand> commandTable = {
+			{"barbershop",   rbac::RBAC_PERM_COMMAND_BARBERSHOP,   false,  &HandleBarbershopCommand,   ""},
+		};
+
+		return commandTable;
+	}
+
+	static bool HandleBarbershopCommand( ChatHandler* handler, const char* args ) {
+		Player* player = handler->GetSession()->GetPlayer();
+		WorldPackets::Misc::EnableBarberShop packet;
+
+		player->SendDirectMessage( packet.Write() );
+		return true;
+	}
 };
 
 class Prometheus : public PlayerScript {
@@ -58,4 +81,3 @@ public:
 		}
 	}
 };
-

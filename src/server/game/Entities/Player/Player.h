@@ -2768,7 +2768,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
 		inline void SetPegasusMount( TempSummon* _t) { m_pegasus = _t; }
 
 		bool IsSeeingOOCChat;
-		inline void toggleOOCChat() { IsSeeingOOCChat = !IsSeeingOOCChat; }
+		inline void toggleOOCChat(bool hard = false, bool on = false) { !hard ? IsSeeingOOCChat = !IsSeeingOOCChat : IsSeeingOOCChat = on; }
 
 		uint32 AthenaSpawnEntry;
 		inline void SetAthenaSpawnEntry( uint32 id ) { AthenaSpawnEntry = id; }
