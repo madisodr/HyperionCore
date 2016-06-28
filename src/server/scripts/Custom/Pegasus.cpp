@@ -128,7 +128,6 @@ public:
 	}
 };
 
-
 void AddSC_Pegasus() {
 	new PegasusLoader();
 	new PegasusHandler();

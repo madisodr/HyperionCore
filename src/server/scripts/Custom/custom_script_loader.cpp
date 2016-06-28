@@ -18,13 +18,12 @@
 // This is where scripts' loading functions should be declared:
 
 
-// The name of this function should match:
-// void Add${NameOfDirectory}Scripts()
 void AddSC_Helios();
 void AddSC_Janus();
 void AddSC_OOCChat();
 void AddSC_Athena();
 void AddSC_Pegasus();
+void AddSC_Prometheus();
 
 void AddCustomScripts() {
 	AddSC_Helios();
@@ -32,4 +31,5 @@ void AddCustomScripts() {
 	AddSC_OOCChat();
 	AddSC_Athena();
 	AddSC_Pegasus();
+	AddSC_Prometheus();
 }

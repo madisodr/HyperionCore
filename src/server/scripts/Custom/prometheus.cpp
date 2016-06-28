@@ -19,6 +19,7 @@ public:
 	std::vector<ChatCommand> GetCommands() const override {
 		static std::vector<ChatCommand> commandTable = {
 			{"barbershop",   rbac::RBAC_PERM_COMMAND_BARBERSHOP,   false,  &HandleBarbershopCommand,   ""},
+			{"warp",         rbac::RBAC_PERM_COMMAND_WARP, false, &HandleWarpCommand, "" },
 		};
 
 		return commandTable;
@@ -30,6 +31,64 @@ public:
 
 		player->SendDirectMessage( packet.Write() );
 		return true;
+	}
+
+	static bool HandleWarpCommand( ChatHandler* handler, const char* args ) {
+		if(!*args)
+			return false;
+
+		Player* player = handler->GetSession()->GetPlayer();
+		char* dist = strtok( (char*) args, " " );
+		char* dir = strtok( NULL, " " );
+
+		if(!dist || !dir)
+			return false;
+
+		char d = dir[0];
+		float value = float( atof( dist ) );
+		float x = player->GetPositionX();
+		float y = player->GetPositionY();
+		float z = player->GetPositionZ();
+		float o = player->GetOrientation();
+		uint32 map = player->GetMapId();
+
+		switch(d) {
+			case 'l':
+				x += cos( o + (M_PI / 2) ) * value;
+				y += sin( o + (M_PI / 2) ) * value;
+				player->TeleportTo( map, x, y, z, o );
+				break;
+			case 'r':
+				x += cos( o - (M_PI / 2) ) * value;
+				y += sin( o - (M_PI / 2) ) * value;
+				player->TeleportTo( map, x, y, z, o );
+				break;
+			case 'f':
+				x += cos( o ) * value;
+				y += sin( o ) * value;
+				player->TeleportTo( map, x, y, z, o );
+				break;
+			case 'b':
+				x -= cos( o ) * value;
+				y -= sin( o ) * value;
+				player->TeleportTo( map, x, y, z, o );
+				break;
+			case 'u':
+				player->TeleportTo( map, x, y, z + value, o );
+				break;
+			case 'd':
+				player->TeleportTo( map, x, y, z - value, o );
+				break;
+			case 'o':
+				o = Position::NormalizeOrientation( (value * M_PI / 180.0f) + o );
+				player->TeleportTo( map, x, y, z, o );
+				break;
+			default:
+				return false;
+		}
+
+		return true;
+
 	}
 };
 
@@ -81,3 +140,8 @@ public:
 		}
 	}
 };
+
+void AddSC_Prometheus() {
+	new Prometheus();
+	new Prometheus_CommandScript();
+}
