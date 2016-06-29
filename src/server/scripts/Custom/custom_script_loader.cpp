@@ -17,7 +17,6 @@
 
 // This is where scripts' loading functions should be declared:
 
-
 void AddSC_Helios();
 void AddSC_Janus();
 void AddSC_OOCChat();

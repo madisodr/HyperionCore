@@ -1,8 +1,4 @@
 /* HyperionCore */
-
-#define HELIOS_SPELL 29173
-#define START_ZONE 725
-
 #include "Chat.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -10,51 +6,50 @@
 #include "Spell.h"
 #include "SpellScript.h"
 
-struct HeliosObject {
+#define HELIOS_SPELL 29173
+#define START_ZONE 725
+
+
+struct HeliosObjectTemplate {
 	uint32 item;
 	uint32 object;
 };
-/*
-class HeliosObject : public GameObject {
-	HeliosObject( Item* i );
-};
-*/
-static std::vector<HeliosObject*> HeliosObjectList;
+
+static std::vector<HeliosObjectTemplate*> HeliosObjectTemplateList;
 
 class HeliosHandler : public WorldScript {
-public:
+	public:
 	HeliosHandler() : WorldScript( "HeliosHandler" ) {}
 	void OnStartup() {
-		loadHyperion();
+		loadHelios();
 	}
 
 	// Cleanup the helios objects
 	void OnShutdown() {
-		for(HeliosObject* i : HeliosObjectList) {
+		for(HeliosObjectTemplate* i : HeliosObjectTemplateList) {
 			delete i;
 		}
 	}
 
-	bool loadHyperion() {
+	bool loadHelios() {
 		Field* f;
 		QueryResult r = WorldDatabase.PQuery( "SELECT item, object FROM helios" );
 		if(!r) return false;
 
 		do {
 			f = r->Fetch();
-			HeliosObject* i = new HeliosObject;
+			HeliosObjectTemplate* i = new HeliosObjectTemplate;
 			i->item = f[0].GetUInt32();
 			i->object = f[1].GetUInt32();
-			HeliosObjectList.push_back( i );
+			HeliosObjectTemplateList.push_back( i );
 		} while(r->NextRow());
 
 		return true;
 	}
-	
 };
 
 class HeliosItem : public ItemScript {
-public:
+	public:
 	static uint32 itemEntry;
 	static ObjectGuid itemGUID;
 	static const WorldLocation* pos;
@@ -67,7 +62,7 @@ public:
 			itemGUID = i->GetGUID();
 			pos = targets.GetDstPos();
 			p->CastSpell( p, HELIOS_SPELL, true );
-
+			return true;
 		} else {
 			ChatHandler( p->GetSession() ).SendSysMessage( "You are not able to spawn gameobjects in this zone." );
 			return false;
@@ -82,13 +77,12 @@ public:
 	}
 };
 
-
 uint32 HeliosItem::itemEntry;
 ObjectGuid HeliosItem::itemGUID;
 const WorldLocation* HeliosItem::pos;
 
 class HeliosSpell : public SpellScriptLoader {
-public:
+	public:
 	HeliosSpell() : SpellScriptLoader( "HeliosSpell" ) {}
 	class HeliosSpell_SpellScript : public SpellScript {
 		PrepareSpellScript( HeliosSpell_SpellScript );
@@ -99,9 +93,69 @@ public:
 
 			Player* p = GetCaster()->ToPlayer();
 			const WorldLocation* pos = HeliosItem::pos;
-			for(HeliosObject* i : HeliosObjectList) {
-
+			bool found = false;
+			HeliosObjectTemplate* data;
+			for(HeliosObjectTemplate* i : HeliosObjectTemplateList) {
+				if(i->item == HeliosItem::itemEntry) {
+					data = i;
+					found = true;
+					break;
+				}
 			}
+
+			// Didn't find the object in the list. Broken APT.
+			if(found) {
+				uint32 objEntry = data->object;
+				QueryResult result = WorldDatabase.PQuery( "SELECT object FROM helios_spawned WHERE item = '%u'", HeliosItem::itemGUID );
+				if(result) {
+					Field* f = result->Fetch();
+					uint32 objGUID = f[0].GetUInt32();
+					if(GameObjectData const* goData = sObjectMgr->GetGOData( objGUID )) {
+						GameObject* object = ChatHandler( p->GetSession() ).GetObjectGlobalyWithGuidOrNearWithDbGuid( objGUID, goData->id );
+						RemoveHeliosObject( p, object );
+					} else
+						PlaceHeliosObject( p, objEntry, pos );
+				}
+			} else {
+				ChatHandler( p->GetSession() ).SendSysMessage( "The gameobject this is suppose to spawn appears to be missing. Please report this error if it continues." );
+				return;
+			}
+		}
+
+		static void RemoveHeliosObject( Player* p, GameObject* o ) {
+			if(!p || !o)
+				return;
+
+			o->SetRespawnTime( 0 );  // not save respawn time
+			o->Delete();
+			o->DeleteFromDB();
+		}
+
+		static void PlaceHeliosObject( Player* p, uint32 objEntry, const WorldLocation* pos ) {
+			float x = pos->GetPositionX();
+			float y = pos->GetPositionX();
+			float z = pos->GetPositionX();
+			float o = p->GetOrientation();
+			Map* map = p->GetMap();
+
+			GameObject* object = new GameObject;
+			if(!object->Create( objEntry, map, 0, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY )) {
+				delete object;
+				return;
+			}
+
+			object->CopyPhaseFrom( p );
+			object->SaveToDB( map->GetId(), (1 << map->GetSpawnMode()), p->GetPhaseMask() );
+			ObjectGuid::LowType spawnId = object->GetSpawnId();
+			delete object;
+
+			object = new GameObject();
+			if(!object->LoadGameObjectFromDB( spawnId, map )) {
+				delete object;
+				return;
+			}
+
+			sObjectMgr->AddGameobjectToGrid( spawnId, ASSERT_NOTNULL( sObjectMgr->GetGOData( spawnId ) ) );
 		}
 
 		void Register() override {
@@ -113,7 +167,7 @@ public:
 
 void AddSC_Helios() {
 	new HeliosHandler();
-    new HeliosItem();
-    new HeliosSpell();
+	new HeliosItem();
+	new HeliosSpell();
 
 }
