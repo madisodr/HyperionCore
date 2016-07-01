@@ -1,4 +1,16 @@
 /* HyperionCore
- * Code Name: Helios
- * Desc: Gameobject placement and building system
+ * Code Name: Hestia
+ * Desc: Guild Base and Garrisons
  */
+
+class HestiaMgr{
+  
+};
+
+class HestiaObjectMgr {
+
+};
+
+class HestiaZone {
+
+};

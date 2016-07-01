@@ -7,6 +7,10 @@
 #include "ScriptedGossip.h"
 #include "MiscPackets.h"
 
+
+static const char* PROMETHEUS_SELECT_CHAR = "SELECT height, morph, flags FROM prometheus WHERE character = %u";
+static const char* PROMETHEUS_INSERT_NEW_CHAR = "INSERT INTO prometheus VALUES (%u, %f, %u, %u)";
+
 enum Prometheus_Flags {
 	NONE = 0x00000000,
 	WORLD_PVP_ENABLED = 0x00000001,
@@ -92,12 +96,13 @@ public:
 	}
 };
 
+
 class Prometheus : public PlayerScript {
 public:
 	Prometheus() : PlayerScript( "prometheus" ) {}
 	void OnLogin( Player* player, bool firstLogin ) {
 		if(!firstLogin) {
-			QueryResult r = WorldDatabase.PQuery( "SELECT height, morph, flags FROM prometheus WHERE character = %u", player->GetGUID().GetCounter() );
+			QueryResult r = WorldDatabase.PQuery( PROMETHEUS_SELECT_CHAR, player->GetGUID().GetCounter() );
 
 			if(r) {
 				Field* field = r->Fetch();
@@ -106,7 +111,7 @@ public:
 				SetCustomFlags( player, field[2].GetUInt32() );
 			}
 		} else {
-			WorldDatabase.PExecute( "INSERT INTO prometheus VALUES (%u, %f, %u, %u)", player->GetGUID().GetCounter(), 1, -1, 0 );
+			WorldDatabase.PExecute( PROMETHEUS_INSERT_NEW_CHAR, player->GetGUID().GetCounter(), 1, -1, 0 );
 		}
 	}
 

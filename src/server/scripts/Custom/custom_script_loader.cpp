@@ -16,7 +16,7 @@
  */
 
 // This is where scripts' loading functions should be declared:
-
+void AddSC_Ares();
 void AddSC_Helios();
 void AddSC_Janus();
 void AddSC_OOCChat();
@@ -25,6 +25,7 @@ void AddSC_Pegasus();
 void AddSC_Prometheus();
 
 void AddCustomScripts() {
+	AddSC_Ares();
 	AddSC_Helios();
 	AddSC_Janus();
 	AddSC_OOCChat();

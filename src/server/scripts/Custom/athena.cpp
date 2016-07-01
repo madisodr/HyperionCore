@@ -36,7 +36,6 @@ public:
 		if(!sObjectMgr->GetCreatureTemplate( id ))
 			return false;
 
-
 		Player* p = handler->GetSession()->GetPlayer();
 		p->SetAthenaSpawnEntry( id );
 		handler->PSendSysMessage( "Creature with id %u has been saved to your clipboard.", id);
