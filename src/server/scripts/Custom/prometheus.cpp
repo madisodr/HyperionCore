@@ -24,6 +24,7 @@ public:
 		static std::vector<ChatCommand> commandTable = {
 			{"barbershop",   rbac::RBAC_PERM_COMMAND_BARBERSHOP,   false,  &HandleBarbershopCommand,   ""},
 			{"warp",         rbac::RBAC_PERM_COMMAND_WARP, false, &HandleWarpCommand, "" },
+      {"face",         rbac::RBAC_PERM_COMMAND_FACE, false, &HandleFaceCommand, "" },
 		};
 
 		return commandTable;
@@ -36,6 +37,51 @@ public:
 		player->SendDirectMessage( packet.Write() );
 		return true;
 	}
+
+  static bool HandleFaceCommand( ChatHandler* handler, const char* args ) {
+    if(!*args)
+      return false;
+
+
+    Player* player = handler->GetSession()->GetPlayer();
+    char* dir = strtok( (char*) args, " " );
+    bool intVal = false;
+    float o = 0.0;
+
+    if(isdigit( dir[0] )) {
+      intVal = true;
+      o = atoi( dir );
+    } 
+
+    if(!intVal) {
+      if(dir == "n") 
+        o = 0;
+      else if(dir == "ne") 
+        o = 45;
+      else if(dir == "e") 
+        o = 90;
+      else if(dir == "se")
+        o = 135;
+      else if(dir == "s") 
+        o = 180;
+      else if(dir == "sw") 
+        o = 225;
+      else if(dir == "w") 
+        o = 270;
+      else if(dir == "nw") 
+        o = 315;
+      else o = 0;
+    }
+
+    o = (o * M_PI / 180.0f);
+    float x = player->GetPositionX();
+    float y = player->GetPositionY();
+    float z = player->GetPositionZ();
+    float o = player->GetOrientation();
+    uint32 map = player->GetMapId();
+
+    player->TeleportTo( map, x, y, z, o );
+  }
 
 	static bool HandleWarpCommand( ChatHandler* handler, const char* args ) {
 		if(!*args)
