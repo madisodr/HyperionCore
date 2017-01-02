@@ -8,13 +8,13 @@ using namespace std;
 static const vector<string> modifierList = {"str", "agi", "sta", "int", "spt", "cha"};
 
 enum MODS {
-	STR,
-	AGI,
-	STA,
-	ITN,
-	SPT,
-	CHA,
-	MAX,
+    STR,
+    AGI,
+    STA,
+    ITN,
+    SPT,
+    CHA,
+    STAT_MAX,
 };
 
 const char* ARES_NO_MODIFIERS_MSG = "We were unable to find any modifiers for your character. Please report this error to a GM or on the forums.";
@@ -33,137 +33,135 @@ const char* ARES_SPT_MSG = "Wisdom: %u";
 const char* ARES_CHA_MSG = "Charisma: %u";
 typedef vector<int> AresStats;
 
+class AresPlayerScript : public PlayerScript
+{
+    public:
+        AresPlayerScript() : PlayerScript( "AresPlayerScript" ) {}
+        void OnCreate(Player* player)
+        {
+            AresStats mods = {0, 0, 0, 0, 0, 0};
+            LoadBaseStats(player->getRace(), player->getClass(), mods);
+            WorldDatabase.PExecute(ARES_NEW, player->GetGUID().GetCounter(), mods[STR], mods[AGI], mods[STA], mods[ITN], mods[SPT], mods[CHA]);
+        }
 
+        void LoadBaseStats(uint32 Race, uint32 Class, AresStats& mods)
+        {
+            Field* fields;
+            QueryResult result = CharacterDatabase.PQuery(ARES_SELECT_BASE_RACIAL, Race);
+            if(result)
+            {
+                fields = result->Fetch();
+                for(int i = 0; i < STAT_MAX; i++)
+                    mods[i] += fields[i].GetUInt32();
+            }
 
-class Ares_PlayerScript : public PlayerScript {
-	public:
-	Ares_PlayerScript() : PlayerScript( "Ares_PlayerScript" ) {}
-	void OnCreate( Player* player ) {
-		AresStats mods = {0, 0, 0, 0, 0, 0};
-		LoadBaseStats( player->getRace(), player->getClass(), mods );
-		WorldDatabase.PExecute( ARES_NEW, player->GetGUID().GetCounter(), mods[STR], mods[AGI], mods[STA], mods[ITN], mods[SPT], mods[CHA] );
-	}
-
-	void LoadBaseStats( uint32 Race, uint32 Class, AresStats& mods ) {
-		QueryResult result = CharacterDatabase.PQuery( ARES_SELECT_BASE_RACIAL, Race );
-		if(result) {
-			Field* fields = result->Fetch();
-			mods[STR] += fields[1].GetUInt32();
-			mods[AGI] += fields[2].GetUInt32();
-			mods[STA] += fields[3].GetUInt32();
-			mods[ITN] += fields[4].GetUInt32();
-			mods[SPT] += fields[5].GetUInt32();
-			mods[CHA] += fields[6].GetUInt32();
-		}
-		
-		result = CharacterDatabase.PQuery( ARES_SELECT_BASE_CLASS, Class );
-		if(result) {
-			Field* fields = result->Fetch();
-			mods[STR] += fields[1].GetUInt32();
-			mods[AGI] += fields[2].GetUInt32();
-			mods[STA] += fields[3].GetUInt32();
-			mods[ITN] += fields[4].GetUInt32();
-			mods[SPT] += fields[5].GetUInt32();
-			mods[CHA] += fields[6].GetUInt32();
-		}
-	}
-
+            result = CharacterDatabase.PQuery(ARES_SELECT_BASE_CLASS, Class);
+            if(result)
+            {
+                fields = result->Fetch();
+                for(int i = 0; i < STAT_MAX; i++)
+                    mods[i] += fields[i].GetUInt32();
+            }
+        }
 };
 
 
-class Ares_CommandScript : public CommandScript {
-	public:
-	Ares_CommandScript() : CommandScript( "Ares_CommandScript" ) {}
-	std::vector<ChatCommand> GetCommands() const override {
-		static std::vector<ChatCommand> commandTable = {
-			{"roll",        rbac::RBAC_PERM_COMMAND_ARES_ROLL,   false,  &HandleRollCommand,   ""},
-			{"viewstats",   rbac::RBAC_PERM_COMMAND_ARES_VIEW,   false,  &HandleViewCommand,   ""},
-		};
+class AresCommandScript : public CommandScript
+{
+    public:
+        AresCommandScript() : CommandScript( "AresCommandScript" ) {}
+        std::vector<ChatCommand> GetCommands() const override
+        {
+            static std::vector<ChatCommand> commandTable = {
+                {"roll",        rbac::RBAC_PERM_COMMAND_ARES_ROLL,   false,  &HandleRollCommand,   ""},
+                {"viewstats",   rbac::RBAC_PERM_COMMAND_ARES_VIEW,   false,  &HandleViewCommand,   ""},
+            };
 
-		return commandTable;
-	}
-	static bool HandleViewCommand( ChatHandler* handler, const char* args ) {
-		Player* player = handler->GetSession()->GetPlayer();
-		QueryResult result = CharacterDatabase.PQuery( ARES_SELECT_ALL_QUERY, player->GetGUID() );
-		if(result) {
-			AresStats mods = {0, 0, 0, 0, 0, 0};
-			Field* field = result->Fetch();
-			uint32 guid = field[0].GetInt32();
-			bool setup = field[1].GetBool();
-			mods[STR] = field[2].GetInt32();
-			mods[AGI] = field[3].GetInt32();
-			mods[STA] = field[4].GetInt32();
-			mods[ITN] = field[5].GetInt32();
-			mods[SPT] = field[6].GetInt32();
-			mods[CHA] = field[7].GetInt32();
+            return commandTable;
+        }
 
-			if(setup == false)
-				ChatHandler( player->GetSession() ).SendSysMessage( ARES_USING_BASE_MODIFIERS_MSG );
-			
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_STR_MSG, mods[STR] );
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_AGI_MSG, mods[STR] );
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_STA_MSG, mods[STR] );
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_ITN_MSG, mods[STR] );
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_SPT_MSG, mods[STR] );
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_CHA_MSG, mods[STR] );
-		} else
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_NO_MODIFIERS_MSG );
-		
-		return true;
-	}
+        static bool HandleViewCommand(ChatHandler* handler, const char* args)
+        {
+            Player* player;
+            ObjectGuid targetGuid;
+            std::string targetName;
 
-	static bool HandleRollCommand( ChatHandler* handler, const char* args ) {
-		int stat = -1;
-		int mod = 0;
-		uint32 dice;
+            if(!handler->extractPlayerTarget((char*) args, &player, &targetGuid, &targetName))
+                player = handler->GetSession()->GetPlayer();
 
-		if(!*args)
-			return false;
+            QueryResult result = CharacterDatabase.PQuery(ARES_SELECT_ALL_QUERY, player->GetGUID());
+            if(result)
+            {
+                AresStats mods = {0, 0, 0, 0, 0, 0};
+                Field* field = result->Fetch();
+                bool setup = field[1].GetBool();
 
-		char* c_rollStat = strtok( (char*) args, " " );
-		char* c_dice = strtok( NULL, " " );
-		char* c_mod = strtok( NULL, " " );
+                for(int i = 1; i < STAT_MAX; i++)
+                    mods[i] = field[i+1].GetInt32();
 
-		if(!c_rollStat || !c_dice)
-			return false;
+                if(setup == false)
+                    ChatHandler( player->GetSession() ).SendSysMessage( ARES_USING_BASE_MODIFIERS_MSG );
 
-		dice = (int) atoi( c_dice );
-		// if unspecificed, additional modifiers = 0
-		!c_mod ? mod = 0 : mod = (int) atoi( c_mod );
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_STR_MSG, mods[STR]);
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_AGI_MSG, mods[STR]);
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_STA_MSG, mods[STR]);
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_ITN_MSG, mods[STR]);
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_SPT_MSG, mods[STR]);
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_CHA_MSG, mods[STR]);
+            } else
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_NO_MODIFIERS_MSG);
 
-		for(uint32 i = 0; i < modifierList.size(); i++) {
-			if(c_rollStat == modifierList[i]) {
-				stat = i;
-				break;
-			}
-		}
+            return true;
+        }
 
-		// the roll type isn't a valid modifier.
-		if(stat == -1)
-			return false;
+        static bool HandleRollCommand(ChatHandler* handler, const char* args)
+        {
+            if(!*args)
+                return false;
 
-		uint32 playerStat = 0;
-		bool hasPlayerSetStats = false;
-		Player* player = handler->GetSession()->GetPlayer();
+            char* c_rollStat = strtok((char*)args, " " );
+            char* c_dice = strtok(NULL, " ");
+            char* c_mod = strtok(NULL, " ");
 
-		QueryResult result = CharacterDatabase.PQuery( ARES_SELECT_STAT_QUERY, c_rollStat, player->GetGUID() );
-		if(!result)
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_NO_MODIFIERS_MSG );
-		else {
-			Field* f = result->Fetch();
-			playerStat = f[0].GetUInt32();
-			hasPlayerSetStats = f[0].GetBool();
-		}
+            if(!c_rollStat || !c_dice)
+                return false;
 
-		if(!hasPlayerSetStats)
-			ChatHandler( player->GetSession() ).SendSysMessage( ARES_USING_BASE_MODIFIERS_MSG );
+            // defaults to 20
+            uint32 dice = (c_dice) ? atoi(c_dice) : 20;
+            // if unspecificed, additional modifiers = 0
+            uint8 mod = (c_mod) ? atoi(c_mod) : 0;
 
-		uint32 roll = urand( 1, dice ) + playerStat + mod;
-		return true;
-	}
+            int8 stat = -1;
+            for(uint32 i = 0; i < modifierList.size(); i++) {
+                if(c_rollStat == modifierList[i]) {
+                    stat = i;
+                    break;
+                }
+            }
+
+            // the roll type isn't a valid modifier.
+            if(stat == -1)
+                return false;
+
+            uint32 playerStat = 0;
+            Player* player = handler->GetSession()->GetPlayer();
+
+            QueryResult result = CharacterDatabase.PQuery(ARES_SELECT_STAT_QUERY, c_rollStat, player->GetGUID());
+            if(!result)
+                ChatHandler(player->GetSession()).SendSysMessage(ARES_NO_MODIFIERS_MSG);
+            else {
+                playerStat = result->Fetch()[0].GetUInt32();
+            }
+
+            uint32 roll = urand(1, dice) + playerStat + mod;
+            std::string msg = "has rolled a " + std::to_string(roll) + "/" + std::to_string(dice);
+            player->TextEmote(msg);
+            return true;
+        }
 };
 
-void AddSC_Ares() {
-	new Ares_PlayerScript();
-	new Ares_CommandScript();
+void AddSC_Ares()
+{
+    new AresPlayerScript();
+    new AresCommandScript();
 }

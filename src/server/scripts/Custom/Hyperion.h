@@ -1,5 +1,6 @@
 #ifndef __hyperion_h__
 #define __hyperion_h__
+#pragma once
 enum HyperionSpellList {
 	HELIOS_SPELL = 29173
 };

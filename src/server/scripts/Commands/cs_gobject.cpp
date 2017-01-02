@@ -367,12 +367,13 @@ public:
             return false;
         }
 
+        /*
         if(object->GetEntry() == JANUS_OBJECT)
         {
             handler->PSendSysMessage("This is a Janus Object. Please delete it using '.janus delete' in order to properly remove it from the database.");
             handler->SetSentErrorMessage(true);
             return false;
-        }
+        }*/
 
         ObjectGuid ownerGuid = object->GetOwnerGUID();
         if (!ownerGuid.IsEmpty())

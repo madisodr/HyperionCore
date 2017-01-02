@@ -29,23 +29,23 @@ class PegasusLoader : public WorldScript {
     public:
         PegasusLoader() : WorldScript("pegasus_loader") {}
 
-        bool LoadMounts() {
-            Field* f;
+        void LoadMounts() {
             QueryResult r = WorldDatabase.PQuery(PEGASUS_SELECT_ENTRY);
             if (!r)
-                return false;
+                return;
 
-            while (r->NextRow()) {
-                f = r->Fetch();
-                PegasusMount* i = new PegasusMount;
-                i->entry = f[0].GetUInt32();
-                i->spawnId = f[1].GetUInt32();
+            Field* field;
+            do {
+                field = r->Fetch();
+                PegasusMount* mount = new PegasusMount;
 
-                mounts.push_back( i );
-            }
+                mount->entry = field[0].GetUInt32();
+                mount->spawnId = field[1].GetUInt32();
+
+                mounts.push_back(mount);
+            } while (r->NextRow());
         }
 };
-
 
 class
 PegasusHandler : public PlayerScript {
@@ -53,32 +53,32 @@ PegasusHandler : public PlayerScript {
     public:
         PegasusHandler() : PlayerScript( "pegasus_handler" ) {}
 
-        void UnsummonMountFromWorld(Player* p) {
-            p->PlayerTalkClass->SendCloseGossip();
+        void UnsummonMountFromWorld(Player* player) {
+            player->PlayerTalkClass->SendCloseGossip();
 
-            if (p->GetPegasusMount() != NULL) {
-                p->GetPegasusMount()->ToTempSummon()->UnSummon();
-                p->SetPegasusMount(NULL);
+            if (player->GetPegasusMount() != NULL) {
+                player->GetPegasusMount()->ToTempSummon()->UnSummon();
+                player->SetPegasusMount(NULL);
             }
         }
 
-        void OnMount(Player* p) {
-            UnsummonMountFromWorld(p);
+        void OnMount(Player* player) {
+            UnsummonMountFromWorld(player);
         }
 
-        void OnDismount(Player* p, uint32 entry) {
-            TempSummon* m;
-            for (PegasusMount* e : mounts) {
-                if (e->entry == entry) {
-                    m = p->SummonCreature(e->spawnId, p->GetPositionX() + 5, p->GetPositionY() + 5, p->GetPositionZ() + 1);
-                    p->SetPegasusMount(m);
-                    m->GetMotionMaster()->MoveFollow(p, PET_FOLLOW_DIST, m->GetFollowAngle());
+        void OnDismount(Player* player, uint32 entry) {
+            TempSummon* summon;
+            for (PegasusMount* mount : mounts) {
+                if (mount->entry == entry) {
+                    summon = player->SummonCreature(mount->spawnId, player->GetPositionX() + 5, player->GetPositionY() + 5, player->GetPositionZ() + 1);
+                    player->SetPegasusMount(summon);
+                    summon->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, summon->GetFollowAngle());
                 }
             }
         }
 
-        void OnLogout(Player* p) {
-            UnsummonMountFromWorld(p);
+        void OnLogout(Player* player) {
+            UnsummonMountFromWorld(player);
         }
 
 };
@@ -87,46 +87,56 @@ class PegasusGossip : public CreatureScript {
     public:
         PegasusGossip() : CreatureScript("pegasus_gossip") { }
 
-        bool OnGossipHello(Player* p, Creature* c) {
-            if (p == c->ToTempSummon()->GetSummoner()) {
-                p->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Dismiss", GOSSIP_SENDER_MAIN, DISMISS);
-                p->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Stay", GOSSIP_SENDER_MAIN, STAY);
-                p->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Follow", GOSSIP_SENDER_MAIN, FOLLOW);
-                p->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Check Storage", GOSSIP_SENDER_MAIN, BANK);
-                p->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Exit", GOSSIP_SENDER_MAIN, EXIT);
-                p->PlayerTalkClass->SendGossipMenu(1, c->GetGUID());
+        bool OnGossipHello(Player* player, Creature* creature) {
+            if (player == creature->ToTempSummon()->GetSummoner()) {
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Dismiss", GOSSIP_SENDER_MAIN, DISMISS);
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Stay", GOSSIP_SENDER_MAIN, STAY);
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Follow", GOSSIP_SENDER_MAIN, FOLLOW);
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Check Storage", GOSSIP_SENDER_MAIN, BANK);
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Exit", GOSSIP_SENDER_MAIN, EXIT);
+                player->PlayerTalkClass->SendGossipMenu(1, creature->GetGUID());
             }
 
             return true;
         }
 
-        bool OnGossipSelect(Player* p, Creature* c, uint32 sender, uint32 actions) {
-            p->PlayerTalkClass->ClearMenus();
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 actions) {
+            player->PlayerTalkClass->ClearMenus();
             switch(actions) {
                 case DISMISS:
-                    if (p->GetPegasusMount() != NULL) {
-                        c->ToTempSummon()->UnSummon();
-                        p->SetPegasusMount( NULL );
+                    if (player->GetPegasusMount() != NULL) {
+                        creature->ToTempSummon()->UnSummon();
+                        player->SetPegasusMount( NULL );
                     }
                     break;
+
                 case STAY: // Tell the mount to stay in one place.
-                    if (p->GetPegasusMount() != NULL) {
-                        c->SetPosition(c->GetPositionX(), c->GetPositionY(), c->GetPositionZ(), c->GetOrientation());
-                        c->GetMotionMaster()->MovementExpired( true );
+                    if (player->GetPegasusMount() != NULL) {
+                        creature->SetPosition(creature->GetPositionX(),
+                                              creature->GetPositionY(),
+                                              creature->GetPositionZ(),
+                                              creature->GetOrientation());
+
+                        creature->GetMotionMaster()->MovementExpired( true );
                     }
                     break;
+
                 case FOLLOW:
-                    if (p->GetPegasusMount() != NULL)
-                        c->GetMotionMaster()->MoveFollow( p, PET_FOLLOW_DIST, c->GetFollowAngle() );
+                    if (player->GetPegasusMount() != NULL)
+                        creature->GetMotionMaster()->MoveFollow( player,
+                                                                 PET_FOLLOW_DIST,
+                                                                 creature->GetFollowAngle() );
                     break;
+
                 case BANK:
-                    p->GetSession()->SendShowBank( p->GetGUID() );
+                    player->GetSession()->SendShowBank( player->GetGUID() );
                     break;
+
                 case EXIT:
                     break;
             }
 
-            p->PlayerTalkClass->SendCloseGossip();
+            player->PlayerTalkClass->SendCloseGossip();
             return true;
         }
 };

@@ -1,3 +1,5 @@
+mkdir -p build
+pushd build
 cmake ../ -GXcode \
     -DMYSQL_ADD_INCLUDE_PATH=/usr/local/include \
     -DMYSQL_LIBRARY=/usr/local/lib/libmysqlclient.dylib \
@@ -12,4 +14,7 @@ cmake ../ -GXcode \
     -DZMQ_INCLUDE_DIR=/usr/local/opt/zeromq/include \
     -DZLIB_ROOT=/usr/local/Cellar/zlib/1.2.8 \
     -DCMAKE_INSTALL_PREFIX=/Users/daniel/hyperion \
-    -DWITH_WARNINGS=1
+    -DWITH_WARNINGS=1 \
+
+xcodebuild -target install -config Release
+popd

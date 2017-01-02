@@ -25,7 +25,7 @@ class HeliosHandler : public WorldScript {
             Field* f;
             QueryResult r = WorldDatabase.PQuery(HELIOS_LOAD);
             if(!r)
-                return false;
+                return;
 
             do {
                 f = r->Fetch();
@@ -69,15 +69,15 @@ class HeliosItem : public ItemScript {
 
         HeliosItem() : ItemScript( "HeliosItem" ) {}
 
-        bool OnUse( Player* p, Item* i, SpellCastTargets const& targets ) override {
-            if(isGoodMap( p->GetMapId() )) {
-                itemEntry = i->GetEntry();
-                itemGUID = i->GetGUID();
+        bool OnUse( Player* player, Item* item, SpellCastTargets const& targets ) override {
+            if(isGoodMap( player->GetMapId() )) {
+                itemEntry = item->GetEntry();
+                itemGUID = item->GetGUID();
                 pos = targets.GetDstPos();
-                p->CastSpell( p, HELIOS_SPELL, true );
+                player->CastSpell(player, HELIOS_SPELL, true);
                 return true;
             } else {
-                ChatHandler( p->GetSession() ).SendSysMessage( "You are not able to spawn gameobjects in this zone." );
+                ChatHandler( player->GetSession() ).SendSysMessage( "You are not able to spawn gameobjects in this zone." );
                 return false;
             }
         }
@@ -104,7 +104,7 @@ class HeliosSpell : public SpellScriptLoader {
                 if(!GetCaster() || GetCaster()->GetTypeId() != TYPEID_PLAYER)
                     return;
 
-                Player* p = GetCaster()->ToPlayer();
+                Player* player = GetCaster()->ToPlayer();
                 const WorldLocation* pos = HeliosItem::pos;
                 bool found = false;
                 HeliosObjectTemplate* data;
@@ -125,19 +125,19 @@ class HeliosSpell : public SpellScriptLoader {
                         Field* f = result->Fetch();
                         uint32 objGUID = f[0].GetUInt32();
                         if(GameObjectData const* goData = sObjectMgr->GetGOData( objGUID )) {
-                            GameObject* object = ChatHandler( p->GetSession() ).GetObjectGlobalyWithGuidOrNearWithDbGuid( objGUID, goData->id );
-                            RemoveHeliosObject( p, object );
+                            GameObject* object = ChatHandler( player->GetSession() ).GetObjectGlobalyWithGuidOrNearWithDbGuid( objGUID, goData->id );
+                            RemoveHeliosObject( player, object );
                         } else
-                            PlaceHeliosObject( p, objEntry, pos );
+                            PlaceHeliosObject( player, objEntry, pos );
                     }
                 } else {
-                    ChatHandler( p->GetSession() ).SendSysMessage( "The gameobject this is suppose to spawn appears to be missing. Please report this error if it continues." );
+                    ChatHandler( player->GetSession() ).SendSysMessage( "The gameobject this is suppose to spawn appears to be missing. Please report this error if it continues." );
                     return;
                 }
             }
 
             static void RemoveHeliosObject(Player* player, GameObject* object) {
-                if (!object)
+                if (!object || !player)
                     return;
 
                 object->SetRespawnTime( 0 );  // not save respawn time

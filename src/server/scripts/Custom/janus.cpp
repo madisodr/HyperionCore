@@ -23,13 +23,16 @@ const char* JANUS_DELETE = "DELETE FROM janus WHERE guid='%u'";
 class JanusCommandScript : public CommandScript {
     public:
         JanusCommandScript() : CommandScript( "JanusCommandScript" ) {}
-        std::vector<ChatCommand> GetCommands() const override {
-            static std::vector<ChatCommand> JanusCommandTable = {
+        std::vector<ChatCommand> GetCommands() const override
+        {
+            static std::vector<ChatCommand> JanusCommandTable =
+            {
                 { "link",   rbac::RBAC_PERM_COMMAND_JANUS_LINK,     false,  &HandleLinkCommand,   "" },
                 { "delete", rbac::RBAC_PERM_COMMAND_JANUS_DELETE,   false,  &HandleDeleteCommand, "" },
             };
 
-            static std::vector<ChatCommand> commandTable = {
+            static std::vector<ChatCommand> commandTable =
+            {
                 {"janus",   rbac::RBAC_PERM_COMMAND_JANUS, false,  NULL, "", JanusCommandTable},
             };
 
@@ -62,19 +65,19 @@ class JanusCommandScript : public CommandScript {
                 return false;
             }
 
-            Player* p = handler->GetSession()->GetPlayer();
+            Player* player = handler->GetSession()->GetPlayer();
             float x = player->GetPositionX();
             float y = player->GetPositionY();
             float z = player->GetPositionZ();
             float o = player->GetOrientation();
             uint32 map = player->GetMapId();
 
-            QueryResult result = WorldDatabase.PQuery(JANUS_LOOKUP, guid);
+            QueryResult result = WorldDatabase.PQuery(JANUS_LOOKUP, guidLow);
 
             if(result)
-                WorldDatabase.PExecute(JANUS_UPDATE, map, x, y, z, ort, guid);
+                WorldDatabase.PExecute(JANUS_UPDATE, map, x, y, z, o, guidLow);
             else
-                WorldDatabase.PExecute(JANUS_INSERT, guid, map, x, y, z, ort);
+                WorldDatabase.PExecute(JANUS_INSERT, guidLow, map, x, y, z, o);
 
             handler->SendSysMessage("A link has been added at your location to the selected object.");
             return true;
@@ -154,7 +157,7 @@ class Janus : public GameObjectScript {
             float o = fields[4].GetFloat();
 
             player->TeleportTo( map, x, y, z, o );
-            player->SendCloseGossip();
+            player->PlayerTalkClass->SendCloseGossip();
             return true;
         }
 };
